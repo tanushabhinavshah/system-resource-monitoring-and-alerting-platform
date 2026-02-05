@@ -10,6 +10,9 @@ Rails.application.routes.draw do
   # Alerts Stream
   get "alerts/stream", to: "alerts#stream"
   
+  # Singular resource (no :id in the URL)
+  resource :threshold, only: [:show, :update]
+  
   # Defines the root path route ("/")
   # root "posts#index"
 end
