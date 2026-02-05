@@ -20,17 +20,23 @@ Welcome! This is the core engine of the Monitoring Platform. It handles real-tim
 - PostgreSQL installed and running
 - Linux / WSL2 (required for metric collection logic)
 
-### 2. Setup
+### 2. Database Permissions (Run this FIRST)
+Run this command to allow your computer to talk to the database without a password:
+```bash
+sudo -u postgres createuser -s $(whoami)
+```
+
+### 3. App Setup
 ```bash
 cd backend
 bundle install
 bin/rails db:prepare
 ```
 
-### 3. Running the Platform
-You only need ONE terminal command to start everything (Web Server + Metric Worker):
+### 4. Running the Platform
+Use our custom startup script. It automatically kills old processes and clears stale files for you:
 ```bash
-bin/rails server
+./dev.sh
 ```
 
 ---
@@ -81,10 +87,10 @@ These endpoints stay open and "push" data to you as soon as it is available.
 ## 🧠 Key Backend Architecture Points
 - **Automated Heartbeat:** The system starts collecting metrics automatically on server boot (via `config/initializers/monitoring.rb`).
 - **SSE vs WebSockets:** We use SSE because it is more efficient for "Server-to-Browser" one-way dashboards. 
-- **Threading:** The server uses multiple threads. It can handle up to 5 concurrent stream connections by default in development.
+- **High Concurrency:** The server is configured with 20 threads to handle multiple frontend reloads safely.
 
 ---
 
 ## 🛠 Troubleshooting
-- **"Server already running":** Run `kill -9 $(cat tmp/pids/server.pid)` or `rm tmp/pids/server.pid`.
-- **No data in stream:** Ensure the `MetricCollectorJob` is enqueued (check your terminal logs).
+- **Frontend not listening:** Make sure to stop any old `curl` or Postman streams.
+- **Port already in use:** Our `./dev.sh` script fixes this by running `fuser -k 3000/tcp` before starting.
