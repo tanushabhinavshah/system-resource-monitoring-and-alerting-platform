@@ -306,6 +306,10 @@ GEM
       net-ssh (>= 2.8.0)
       ostruct
     stringio (3.2.0)
+    sys-cpu (1.1.0)
+      ffi (~> 1.1)
+    sys-memory (0.2.0)
+      ffi (~> 1.1)
     thor (1.5.0)
     thruster (0.1.18)
     thruster (0.1.18-aarch64-linux)
@@ -350,6 +354,8 @@ DEPENDENCIES
   solid_cable
   solid_cache
   solid_queue
+  sys-cpu
+  sys-memory
   thruster
   tzinfo-data
 

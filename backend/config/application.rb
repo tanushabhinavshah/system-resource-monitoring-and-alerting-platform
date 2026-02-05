@@ -28,5 +28,14 @@ module Backend
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+    # This line checks the system's /etc/timezone file.
+    # If the file exists, it uses its content. 
+    # Otherwise, it falls back to UTC.
+    if File.exist?('/etc/timezone')
+      config.time_zone = File.read('/etc/timezone').strip
+    else
+      config.time_zone = 'UTC' # Safety fallback
+    end
+    config.active_job.queue_adapter = :async
   end
 end
