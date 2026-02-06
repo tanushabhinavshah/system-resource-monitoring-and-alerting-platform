@@ -7,6 +7,11 @@ class MetricCollectorService
   end
 
   def collect
+    # if simulation running, then pause real metrics collection
+    if Rails.cache.read("simulation_active")
+      puts "⏸️ Real Metric Collection paused (Simulation is active)"
+      return false 
+    end
     # 1. Capture Network State BEFORE the wait
     start_net = parse_network_stats
     
@@ -37,6 +42,9 @@ class MetricCollectorService
 
     # Pass it to our Ingestion Manager
     IngestMetricService.new(metric_params).execute
+    
+    # Return the hash so the simulator can use it!
+    metric_params
   end
 
   private
