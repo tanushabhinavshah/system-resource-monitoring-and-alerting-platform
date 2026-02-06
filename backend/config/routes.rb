@@ -13,6 +13,8 @@ Rails.application.routes.draw do
   # Singular resource (no :id in the URL)
   resource :threshold, only: [:show, :update]
   
+  post "metrics/simulate-spike", to: "metrics#simulate_spike"
+  
   # Defines the root path route ("/")
   # root "posts#index"
 end
