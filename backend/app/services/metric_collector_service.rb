@@ -10,7 +10,9 @@ class MetricCollectorService
     # if simulation running, then pause real metrics collection
     if Rails.cache.read("simulation_active")
       puts "⏸️ Real Metric Collection paused (Simulation is active)"
-      return false 
+      # 🛡️ Return an empty hash instead of 'false'
+      # This prevents .merge error in the controller
+      return {} 
     end
     # 1. Capture Network State BEFORE the wait
     start_net = parse_network_stats

@@ -9,22 +9,27 @@ class AlertsController < ApplicationController
     sse = SSE.new(response.stream, event: "alert_event")
     begin
       sse.write({ message: "Alert stream connected" }, event: "ping")
+      
       subscriber = ActiveSupport::Notifications.subscribe("alert_triggered") do |_name, _start, _finish, _id, payload|
-        # Fix: Use String keys
-        sse.write({
-          resource_type: payload["resource_type"],
-          severity: payload["severity"],
-          is_resolved: payload["is_resolved"],
-          reason: payload["reason"],
-          event_at: payload["timestamp"] || payload["created_at"]
-        })
+        begin
+          # 🛡️ THE PROTECTION: Wrap write in a rescue
+          sse.write({
+            resource_type: payload["resource_type"],
+            severity: payload["severity"],
+            is_resolved: payload["is_resolved"],
+            reason: payload["reason"],
+            event_at: payload["timestamp"] || payload["created_at"]
+          })
+        rescue ActionController::Live::ClientDisconnected
+          # Client disconnected; ignore silently to protect the main thread.
+        end
       end
 
-    
       sleep
     rescue IOError, ActionController::Live::ClientDisconnected
+      Rails.logger.info "Alerts SSE disconnected"
     ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       sse.close
     end
   end
