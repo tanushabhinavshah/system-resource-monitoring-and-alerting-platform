@@ -50,3 +50,5 @@ group :development, :test do
   gem "sys-cpu"
   gem "sys-memory"
 end
+
+gem "jwt", "~> 3.1"

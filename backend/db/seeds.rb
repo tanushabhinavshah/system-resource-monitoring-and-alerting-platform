@@ -4,7 +4,6 @@
 #
 require 'etc'
 
-puts "Seeding default thresholds..."
 
 Threshold.find_or_create_by!(id: 1) do |t|
   t.cpu_threshold = 75.0
@@ -13,10 +12,15 @@ Threshold.find_or_create_by!(id: 1) do |t|
   t.network_out_threshold = 1000.0
 end
 
-puts "✅ Default thresholds established!"
+User.find_or_create_by!(email: "admin@gmail.com") do |u|
+  u.name = "Admin"
+  u.password = "admin123"
+end
 
 CpuAllocation.find_or_create_by!(id: 1) do |c|
   c.total_cores = Etc.nprocessors # This detects your cores
   c.allocated_cores = 1           # Start with just one
   c.reason = "System initialized"
 end
+
+puts "✅ Initial seeding completed!"
