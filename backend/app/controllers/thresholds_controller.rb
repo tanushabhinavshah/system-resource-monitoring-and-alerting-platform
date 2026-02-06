@@ -1,6 +1,7 @@
 class ThresholdsController < ApplicationController
   # GET /threshold
   def show
+    response.headers['Cache-Control'] = 'no-store'
     render json: Threshold.first
   end
 
