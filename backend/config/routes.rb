@@ -16,6 +16,9 @@ Rails.application.routes.draw do
   post "metrics/simulate-spike", to: "metrics#simulate_spike"
   
   get "cpu-allocation", to: "cpu_allocations#show"
+
+  post "auth/register", to: "authentication#register"
+  post "auth/login", to: "authentication#login"
   # Defines the root path route ("/")
   # root "posts#index"
 end

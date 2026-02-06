@@ -31,8 +31,12 @@ sudo -u postgres createuser -s $(whoami)
 cd backend
 bundle install
 bin/rails db:prepare
-bin/rails db:seed   # 🚨 Critical for Thresholds and CPU cores
+bin/rails db:seed   # 🚨 Seeds include: Thresholds, Initial Core, and Admin User
 ```
+
+**Default Admin Credentials (Seeded):**
+- **Email:** `admin@gmail.com`
+- **Password:** `admin123`
 
 ### 4. Running the Platform
 Use our custom startup script. It automatically kills old processes and clears stale files for you:
@@ -44,11 +48,29 @@ Use our custom startup script. It automatically kills old processes and clears s
 
 ## 📡 API Documentation
 
-### 1. Real-time Streams (SSE)
+### 1. User Authentication
+**Base Path:** `/auth`
 
-These endpoints stay open and "push" data to you.
-- **Metrics Stream:** `GET /metrics/stream` (Event: `metric_update`)
-- **Alerts Stream:** `GET /alerts/stream` (Event: `alert_event`)
+- **POST `/auth/register`**: Creates a new monitoring account.
+  ```json
+  { "name": "Admin", "email": "admin@gmail.com", "password": "password123" }
+  ```
+  *Output:* `{message: "User registered successfully!" }`
+  
+- **POST `/auth/login`**: Returns a JWT token for future requests.
+  ```json
+  { "email": "admin@gmail.com", "password": "admin123" }
+  ```
+  *Output:* `{ "token": "eyJhbG...", "message": "Login successful!" }`
+
+### 2. Real-time Streams (SSE)
+
+These endpoints stay open and "push" data to you as soon as it is available.
+
+#### 1. Metrics Stream
+**Endpoint:** `GET /metrics/stream` (Event: `metric_update`)
+#### 2. Alerts Stream
+**Endpoint:** `GET /alerts/stream` (Event: `alert_event`)
 
 ### 2. Threshold Management
 **Endpoint:** `resource :threshold`
