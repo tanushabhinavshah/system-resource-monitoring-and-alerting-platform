@@ -46,7 +46,7 @@ class IngestMetricService
     else
       # 2. If the metric is back to normal, but an alert is still 'active', we RESOLVE it
       if latest_alert && !latest_alert.is_resolved?
-        resolve_alert(resource, current_value, unit)
+        resolve_alert(resource, current_value, unit, latest_alert)
       end
     end
   end
@@ -64,9 +64,11 @@ class IngestMetricService
     ActiveSupport::Notifications.instrument("alert_triggered", alert.attributes)
 
     puts "🚨 [#{severity.upcase}] ALERT: #{resource.humanize} at #{value}#{unit}!"
+
+    CpuScalingService.scale_up(severity) if resource == "cpu"
   end
 
-  def resolve_alert(resource, value, unit)
+  def resolve_alert(resource, value, unit, previous_alert = nil)
     alert = Alert.create!(
       resource_type: resource,
       severity: "warning", # We keep the severity context, but mark as resolved
@@ -79,5 +81,11 @@ class IngestMetricService
     ActiveSupport::Notifications.instrument("alert_triggered", alert.attributes)
 
     puts "✅ RESOLVED: #{resource.humanize} is back to normal."
+
+    if resource == "cpu"
+      old_severity = previous_alert.severity || "warning"
+
+      CpuScalingService.scale_down(old_severity)
+    end
   end
 end
