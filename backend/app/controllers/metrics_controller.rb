@@ -45,21 +45,26 @@ class MetricsController < ApplicationController
       return
     end
     
+    # IMMEDIATELY TURN ON THE LOCK
+    Rails.cache.write("simulation_active", true)
+
+    last_metric = Metric.last
+    baseline = {
+      "cpu_usage_percent" => last_metric&.cpu_usage_percent,
+      "memory_usage_percent" => last_metric&.memory_usage_percent,
+      "network_in_kb" => last_metric&.network_in_kb,
+      "network_out_kb" => last_metric&.network_out_kb
+    }
     
-    # 1. Setup the data (Same as before)
-    real_metrics = MetricCollectorService.collect
     spike_data = params.permit(:cpu_usage_percent, :memory_usage_percent, :network_in_kb, :network_out_kb)
                       .to_h.compact.transform_values(&:to_f)
     
-    final_params = real_metrics.merge(spike_data.stringify_keys)
+    final_params = baseline.merge(spike_data.stringify_keys)
     duration = (params[:duration_seconds] || 5).to_i # Default to 5 seconds if not sent
 
     # 2. THE BACKGROUND THREAD
     # We use Thread.new to do the "hard work" while the API replies instantly.
     Thread.new do
-      # 1. TURN ON THE LOCK
-      Rails.cache.write("simulation_active", true)
-      
       begin
         end_time = Time.now + duration
         while Time.now < end_time
@@ -67,7 +72,7 @@ class MetricsController < ApplicationController
           sleep 2 
         end
       ensure
-        # 2. TURN OFF THE LOCK (no matter what happens)
+        # 2. TURN OFF THE LOCK
         Rails.cache.delete("simulation_active")
         puts "📈 Simulation Complete. Real collection resumed."
       end
