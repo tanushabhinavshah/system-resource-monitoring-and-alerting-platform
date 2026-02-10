@@ -19,6 +19,7 @@ Rails.application.routes.draw do
 
   post "auth/register", to: "authentication#register"
   post "auth/login", to: "authentication#login"
+  post "auth/logout", to: "authentication#logout"
   # Defines the root path route ("/")
   # root "posts#index"
 end
