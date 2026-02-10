@@ -45,6 +45,13 @@ class MetricsController < ApplicationController
       return
     end
     
+    # We call a private method to check if the data sent is safe.
+    errors = validate_simulation_params(params)
+    if errors.any?
+      render json: { errors: errors }, status: :bad_request
+      return
+    end
+
     # IMMEDIATELY TURN ON THE LOCK
     Rails.cache.write("simulation_active", true)
 
@@ -83,5 +90,33 @@ class MetricsController < ApplicationController
       message: "Simulation started for #{duration} seconds", 
       spiking_data: spike_data 
     }
+  end
+
+  def validate_simulation_params(p)
+    errors = []
+
+    # for cpu and mem
+    [:cpu_usage_percent, :memory_usage_percent].each do |key|
+      if p[key].present?
+        val = p[key].to_f
+        errors << "#{key.to_s.humanize} must be between 0 and 100" if val < 0 || val > 100
+      end
+    end
+
+    # for network
+    [:network_in_kb, :network_out_kb].each do |key|
+      if p[key].present?
+        val = p[key].to_f
+        errors << "#{key.to_s.humanize} cannot be negative" if val < 0
+      end
+    end
+
+    # for duration 
+    if [:duration_seconds].present?
+      duration = p[:duration_seconds].to_i
+      errors << "Duration must be between 1 and 120 seconds" if duration < 1 || duration > 120
+    end
+
+    errors
   end
 end
