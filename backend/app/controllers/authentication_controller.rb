@@ -22,6 +22,10 @@ class AuthenticationController < ApplicationController
     end
   end
 
+  def logout
+    # only send message; frontend will delete the token from local storage
+    render json: { message: "Logged out successfully!"}, status: :ok
+  end
   private
 
   def user_params
